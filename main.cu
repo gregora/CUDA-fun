@@ -1,24 +1,60 @@
-#define N 10000000
+#include <stdio.h>
 
-void vector_add(float *out, float *a, float *b, int n) {
-    for(int i = 0; i < n; i++){
-        out[i] = a[i] + b[i];
+
+#define N 1000
+
+
+class c {
+    public:
+    float a = 32;
+
+
+};
+
+
+
+__global__
+void add(int *a, int *b, c *c) {
+    int i = blockIdx.x;
+    int j = blockIdx.y;
+    if (i<N) {
+        b[i] = c->a;
     }
 }
 
-int main(){
-    float *a, *b, *out; 
 
-    // Allocate memory
-    a   = (float*)malloc(sizeof(float) * N);
-    b   = (float*)malloc(sizeof(float) * N);
-    out = (float*)malloc(sizeof(float) * N);
 
-    // Initialize array
-    for(int i = 0; i < N; i++){
-        a[i] = 1.0f; b[i] = 2.0f;
+int main() {
+
+    int ha[N], hb[N];
+    int *da, *db;
+
+    cudaMalloc((void **)&da, N*sizeof(int));
+    cudaMalloc((void **)&db, N*sizeof(int));
+
+    for (int i = 0; i<N; ++i) {
+        ha[i] = i;
     }
 
-    // Main function
-    vector_add(out, a, b, N);
+    cudaMemcpy(da, ha, N*sizeof(int), cudaMemcpyHostToDevice);
+
+    c hc;
+    c* dc;
+
+    cudaMalloc((void **)&dc, sizeof(c));
+    cudaMemcpy(dc, &hc, sizeof(c), cudaMemcpyHostToDevice);
+
+
+    add<<<N, 1>>>(da, db, dc);
+
+    cudaMemcpy(hb, db, N*sizeof(int), cudaMemcpyDeviceToHost);
+
+    for (int i = 0; i<N; ++i) {
+        printf("%d\n", hb[i]);
+    }
+
+    cudaFree(da);
+    cudaFree(db);
+
+    return 0;
 }
