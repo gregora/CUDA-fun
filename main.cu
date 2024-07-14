@@ -7,8 +7,6 @@
 class c {
     public:
     float a = 32;
-
-
 };
 
 
